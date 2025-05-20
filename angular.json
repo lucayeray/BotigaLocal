@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "BotigaLocal": {
+    "BotigaLucaMarc": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/botiga-local",
+            "outputPath": "dist/botiga-luca-marc",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -25,6 +25,7 @@
                 "glob": "**/*",
                 "input": "public"
               }
+
             ],
             "styles": [
               "src/styles.css"
@@ -59,10 +60,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "BotigaLocal:build:production"
+              "buildTarget": "BotigaLucaMarc:build:production"
             },
             "development": {
-              "buildTarget": "BotigaLocal:build:development"
+              "buildTarget": "BotigaLucaMarc:build:development"
             }
           },
           "defaultConfiguration": "development"
