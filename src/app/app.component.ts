@@ -18,9 +18,14 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.session.isLoggedIn) {
-      this.teachable.init();
-    }
+    this.session.loggedIn$.subscribe((loggedIn) => {
+      if (loggedIn) {
+        this.teachable.resetUI(); // Ocultar tiburón si estaba
+        this.teachable.init();    // Reiniciar cámara
+      } else {
+        this.teachable.stop();    // Detener cámara al cerrar sesión
+      }
+    });
   }
 
   get username(): string | null {
@@ -31,6 +36,3 @@ export class AppComponent implements OnInit {
     this.session.logout();
   }
 }
-
-
-

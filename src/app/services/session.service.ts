@@ -1,25 +1,36 @@
-import {Injectable} from '@angular/core';
+// src/app/services/session.service.ts
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
-  isLoggedIn = false;
+  private loggedInSubject = new BehaviorSubject<boolean>(this.hasUser());
+  isLoggedIn = this.loggedInSubject.value;
+  public loggedIn$ = this.loggedInSubject.asObservable();
 
   constructor() {
-    const user = localStorage.getItem('user');
-    this.isLoggedIn = !!user;
+    this.loggedInSubject.subscribe((state) => this.isLoggedIn = state);
+  }
+
+  private hasUser(): boolean {
+    return !!localStorage.getItem('user');
+  }
+
+  get sessionChanges$() {
+    return this.loggedInSubject.asObservable();
   }
 
   login(username: string) {
-    this.isLoggedIn = true;
     localStorage.setItem('user', username);
-  }
-
-  getUser() {
-    return localStorage.getItem('user');
+    this.loggedInSubject.next(true);
   }
 
   logout() {
-    this.isLoggedIn = false;
     localStorage.removeItem('user');
+    this.loggedInSubject.next(false);
+  }
+
+  getUser(): string | null {
+    return localStorage.getItem('user');
   }
 }

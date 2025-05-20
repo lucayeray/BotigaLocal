@@ -46,7 +46,6 @@ export class TeachableService {
 
   private async predict(): Promise<void> {
     const prediction = await this.model.predict(this.webcam.canvas);
-
     const best = prediction.reduce((a, b) =>
       a.probability > b.probability ? a : b
     );
@@ -63,7 +62,20 @@ export class TeachableService {
       if (webcamContainer) webcamContainer.style.display = 'none';
     }
   }
+
+  stop(): void {
+    if (this.webcam) {
+      this.webcam.stop();
+    }
+    this.loopActive = false;
+    const webcamContainer = document.getElementById('webcam-container');
+    if (webcamContainer) webcamContainer.style.display = 'none';
+  }
+
+  resetUI(): void {
+    const alertDiv = document.getElementById('alert');
+    if (alertDiv) alertDiv.style.display = 'none';
+    const webcamContainer = document.getElementById('webcam-container');
+    if (webcamContainer) webcamContainer.style.display = 'block';
+  }
 }
-
-
-
