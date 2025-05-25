@@ -1,6 +1,14 @@
 <div>
   <h2>Carrito de Compras</h2>
 
+  <label for="currency">Mostrar precios en: </label>
+  <select id="currency" [(ngModel)]="selectedCurrency">
+    <option value="usd">USD</option>
+    <option value="eur">EUR</option>
+    <option value="bnb">BNB</option>
+    <option value="btc">BTC</option>
+  </select>
+
   <table>
     <thead>
     <tr>
@@ -12,12 +20,12 @@
     <tbody>
     <tr *ngFor="let item of groupedItems">
       <td>{{ item.name }}</td>
-      <td>{{ item.price }}$</td>
+      <td>{{ convertPrice(item.price) | number:'1.6-8' }} {{ selectedCurrency | uppercase }}</td>
       <td>{{ item.quantity }}</td>
     </tr>
     </tbody>
   </table>
 
-  <h3>TOTAL: {{ total }}$</h3>
+  <h3>TOTAL: {{ convertPrice(total) | number:'1.6-8' }} {{ selectedCurrency | uppercase }}</h3>
   <button (click)="pay()">Pagar</button>
 </div>
