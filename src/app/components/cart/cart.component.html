@@ -30,7 +30,8 @@
     TOTAL: {{ convertPrice(total) | number:'1.6-8' }} {{ selectedCurrency | uppercase }}
   </h3>
 
-  <button (click)="pay()">Pagar</button>
-  <button (click)="payWithBNB()">Pagar con BNB</button>
-  <button (click)="payWithBTCB()">Pagar con BTC (BTCB)</button>
+  <button (click)="payUSD()">Pagar en Dolars</button>
+  <button (click)="payEUR()">Pagar en Euros</button>
+  <button (click)="payWithBNB()">Pagar en BNB</button>
+  <button (click)="payWithBTCB()">Pagar en BTC (BTCB)</button>
 </div>

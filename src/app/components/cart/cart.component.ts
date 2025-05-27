@@ -55,9 +55,36 @@ export class CartComponent implements OnInit{
     return this.cartService.getTotal();
   }
 
-  pay() {
-    alert('Gracias por tu compra');
+  payUSD() {
+
+    for (const item of this.groupedItems) {
+      const payload = {
+        nombre: item.name,
+        cantidad: item.quantity,
+        moneda: 'USD'
+      };
+
+      this.http.post('http://localhost:3000/api/compras', payload).subscribe();
+    }
+
+    alert('Gracias por tu compra')
     this.cartService.clearCart();
+  }
+
+  payEUR() {
+
+    for (const item of this.groupedItems) {
+      const payload = {
+        nombre: item.name,
+        cantidad: item.quantity,
+        moneda: 'EUR'
+      };
+
+      this.http.post('http://localhost:3000/api/compras', payload).subscribe();
+    }
+
+    this.cartService.clearCart();
+    alert('Gracias por tu compra')
   }
 
   async payWithBNB() {
@@ -70,7 +97,7 @@ export class CartComponent implements OnInit{
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       const sender = accounts[0];
 
-      // Cambia esta línea para enviar un mínimo de 0.001 BNB para evitar spam filter
+      // Linea per evitar Spam Filter
       const amountBNB = this.convertPrice(this.total);
       if (amountBNB < 0.001) {
         alert('El monto es muy bajo para enviar con BNB, intenta agregar más productos.');
@@ -91,9 +118,20 @@ export class CartComponent implements OnInit{
       });
 
       console.log('TX enviada:', txHash);
-      alert('Pago con BNB enviado');
+      alert('Pago con BNB enviado, Gracias por tu compra');
 
+      //BD
+      for (const item of this.groupedItems) {
+        const payload = {
+          nombre: item.name,
+          cantidad: item.quantity,
+          moneda: 'BNB'
+        };
+
+        this.http.post('http://localhost:3000/api/compras', payload).subscribe();
+      }
       this.cartService.clearCart();
+
     } catch (err: any) {
       console.error(err);
       alert('Error al enviar BNB: ' + err.message);
@@ -106,6 +144,7 @@ export class CartComponent implements OnInit{
   }
 
   async payWithBTCB() {
+
     if (!window.ethereum) {
       alert('MetaMask no está instalado');
       return;
@@ -114,12 +153,6 @@ export class CartComponent implements OnInit{
     try {
       await window.ethereum.request({ method: 'eth_requestAccounts' });
 
-      // Cambiar validación de red a BSC Testnet (chainId: 97 => 0x61)
-      const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-      if (currentChainId !== '0x61') {
-        alert('Por favor, cambia a la Binance Smart Chain Testnet en MetaMask');
-        return;
-      }
 
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
@@ -127,7 +160,6 @@ export class CartComponent implements OnInit{
       const btcb = new ethers.Contract(BTCB_CONTRACT_ADDRESS, ERC20_ABI, signer);
 
       const totalBTC = this.convertPrice(this.total).toFixed(8);
-      alert(`Necesitas al menos ${totalBTC} BTCB (en testnet) para completar la compra.`);
 
       const amount = ethers.parseUnits(totalBTC, 18);
       const recipient = await signer.getAddress();
@@ -135,7 +167,19 @@ export class CartComponent implements OnInit{
       const tx = await (btcb as any).transfer(recipient, amount);
       await tx.wait();
 
-      alert('Pago con BTCB en testnet completado');
+      alert('Pago con BTCB en testnet completado, Gracias por tu compra');
+
+      //BD
+      for (const item of this.groupedItems) {
+        const payload = {
+          nombre: item.name,
+          cantidad: item.quantity,
+          moneda: 'BTC'
+        };
+
+        this.http.post('http://localhost:3000/api/compras', payload).subscribe();
+      }
+
       this.cartService.clearCart();
     } catch (err: any) {
       console.error(err);
