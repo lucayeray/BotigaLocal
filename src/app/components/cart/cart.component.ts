@@ -3,9 +3,19 @@ import { NgForOf, CommonModule  } from '@angular/common';
 import { CartService } from '../../services/cart.service';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { ethers } from 'ethers';
 
 
 type Currency = 'usd' | 'eur' | 'bnb' | 'btc';
+
+declare let window: any;
+const BTCB_CONTRACT_ADDRESS = '0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8';
+const ERC20_ABI = [
+  "function transfer(address to, uint256 amount) external returns (bool)",
+  "function balanceOf(address account) external view returns (uint256)"
+];
+
+
 
 @Component({
   selector: 'app-cart',
@@ -18,13 +28,13 @@ export class CartComponent implements OnInit{
 
   selectedCurrency: Currency = 'usd';
 
+
   exchangeRates: { [key in Currency]: number } = {
     usd: 1,
     eur: 1,
     bnb: 1,
     btc: 1
   };
-
   ngOnInit() {
     this.http.get<{ [key in Currency]: number }>('http://localhost:3000/api/exchange-rates')
       .subscribe(rates => {
@@ -33,7 +43,7 @@ export class CartComponent implements OnInit{
   }
 
   convertPrice(price: number): number {
-    return price * this.exchangeRates[this.selectedCurrency];
+    return price / this.exchangeRates[this.selectedCurrency];
   }
 
 
@@ -49,6 +59,92 @@ export class CartComponent implements OnInit{
     alert('Gracias por tu compra');
     this.cartService.clearCart();
   }
+
+  async payWithBNB() {
+    if (!window.ethereum) {
+      alert('MetaMask no está instalado');
+      return;
+    }
+
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const sender = accounts[0];
+
+      // Cambia esta línea para enviar un mínimo de 0.001 BNB para evitar spam filter
+      const amountBNB = this.convertPrice(this.total);
+      if (amountBNB < 0.001) {
+        alert('El monto es muy bajo para enviar con BNB, intenta agregar más productos.');
+        return;
+      }
+
+      const value = this.toHexWei(amountBNB.toFixed(6));
+
+      const txParams = {
+        from: sender,
+        to: '0xbF794c99990079dAECbd70F647Cc2BB54e540B04',
+        value,
+      };
+
+      const txHash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [txParams],
+      });
+
+      console.log('TX enviada:', txHash);
+      alert('Pago con BNB enviado');
+
+      this.cartService.clearCart();
+    } catch (err: any) {
+      console.error(err);
+      alert('Error al enviar BNB: ' + err.message);
+    }
+  }
+
+  toHexWei(amountBNB: string): string {
+    const wei = BigInt(parseFloat(amountBNB) * 1e18);
+    return '0x' + wei.toString(16);
+  }
+
+  async payWithBTCB() {
+    if (!window.ethereum) {
+      alert('MetaMask no está instalado');
+      return;
+    }
+
+    try {
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+      // Cambiar validación de red a BSC Testnet (chainId: 97 => 0x61)
+      const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+      if (currentChainId !== '0x61') {
+        alert('Por favor, cambia a la Binance Smart Chain Testnet en MetaMask');
+        return;
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+
+      const btcb = new ethers.Contract(BTCB_CONTRACT_ADDRESS, ERC20_ABI, signer);
+
+      const totalBTC = this.convertPrice(this.total).toFixed(8);
+      alert(`Necesitas al menos ${totalBTC} BTCB (en testnet) para completar la compra.`);
+
+      const amount = ethers.parseUnits(totalBTC, 18);
+      const recipient = await signer.getAddress();
+
+      const tx = await (btcb as any).transfer(recipient, amount);
+      await tx.wait();
+
+      alert('Pago con BTCB en testnet completado');
+      this.cartService.clearCart();
+    } catch (err: any) {
+      console.error(err);
+      alert('Error al enviar BTCB: ' + err.message);
+    }
+  }
+
+
+
 }
 
 

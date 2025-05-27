@@ -26,6 +26,11 @@
     </tbody>
   </table>
 
-  <h3>TOTAL: {{ convertPrice(total) | number:'1.6-8' }} {{ selectedCurrency | uppercase }}</h3>
+  <h3>
+    TOTAL: {{ convertPrice(total) | number:'1.6-8' }} {{ selectedCurrency | uppercase }}
+  </h3>
+
   <button (click)="pay()">Pagar</button>
+  <button (click)="payWithBNB()">Pagar con BNB</button>
+  <button (click)="payWithBTCB()">Pagar con BTC (BTCB)</button>
 </div>
